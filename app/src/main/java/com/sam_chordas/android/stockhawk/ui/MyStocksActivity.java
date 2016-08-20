@@ -84,12 +84,13 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     recyclerView.addOnItemTouchListener(new RecyclerViewItemClickListener(this,
             new RecyclerViewItemClickListener.OnItemClickListener() {
               @Override public void onItemClick(View v, int position) {
-                //TODO:
-                // do something on item click
+
+                Intent intent = StockDetailActivity.getStartActivityIntent(MyStocksActivity.this, (String) v.getTag());
+
+                startActivity(intent);
               }
             }));
     recyclerView.setAdapter(mCursorAdapter);
-
 
     FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
     fab.attachToRecyclerView(recyclerView);
