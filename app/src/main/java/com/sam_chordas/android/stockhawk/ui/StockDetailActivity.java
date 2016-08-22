@@ -54,8 +54,8 @@ public class StockDetailActivity extends AppCompatActivity implements
         switch (id) {
             case STOCK_LOADER:
                 return new CursorLoader(this, QuoteProvider.Quotes.CONTENT_URI,
-                        new String[] {QuoteColumns._ID, QuoteColumns.SYMBOL, QuoteColumns.BIDPRICE,
-                        QuoteColumns.PERCENT_CHANGE, QuoteColumns.CHANGE, QuoteColumns.ISUP},
+                        new String[]{QuoteColumns._ID, QuoteColumns.SYMBOL, QuoteColumns.BIDPRICE,
+                            QuoteColumns.PERCENT_CHANGE, QuoteColumns.CHANGE, QuoteColumns.ISUP},
                         QuoteColumns.SYMBOL + " = ?",
                         new String[]{currency},
                         null);
@@ -65,7 +65,9 @@ public class StockDetailActivity extends AppCompatActivity implements
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        if (data.getCount() != 0) {
+        int count = data.getCount();
+
+        if (count != 0 || count < 2) {
             renderChart(data);
         }
     }
@@ -96,7 +98,7 @@ public class StockDetailActivity extends AppCompatActivity implements
                 .setLabelsColor(Color.parseColor("#6a84c3"))
                 .setXAxis(false)
                 .setYAxis(false)
-                .setAxisBorderValues(Math.round(Math.max(0f, minimumPrice - 5f)), Math.round(maximumPrice - 5f))
+                .setAxisBorderValues(Math.round(Math.max(0f, minimumPrice - 5f)), Math.round(maximumPrice + 5f))
                 .addData(lineSet);
 
         Animation anim = new Animation();
