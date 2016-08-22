@@ -84,7 +84,7 @@ public class StockDetailActivity extends AppCompatActivity implements
             maximumPrice = Math.max(maximumPrice, price);
         }
 
-        lineSet.setColor(Color.parseColor("758cbb"))
+        lineSet.setColor(Color.parseColor("#758cbb"))
                 .setFill(Color.parseColor("#2d374c"))
                 .setDotsColor(Color.parseColor("#758cbb"))
                 .setThickness(4)
