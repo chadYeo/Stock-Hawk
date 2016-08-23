@@ -67,7 +67,7 @@ public class StockDetailActivity extends AppCompatActivity implements
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         int count = data.getCount();
 
-        if (count != 0 || count < 2) {
+        if (count != 0) {
             renderChart(data);
         }
     }
