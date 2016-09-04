@@ -1,13 +1,16 @@
 package com.sam_chordas.android.stockhawk.ui;
 
 import android.app.LoaderManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.Loader;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.ActionBar;
 import android.os.Bundle;
@@ -47,7 +50,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
   private CharSequence mTitle;
   private Intent mServiceIntent;
   private ItemTouchHelper mItemTouchHelper;
-  private static final int CURSOR_LOADER_ID = 0;
+  public static final int CURSOR_LOADER_ID = 0;
   private QuoteCursorAdapter mCursorAdapter;
   private Context mContext;
   private Cursor mCursor;
@@ -161,6 +164,9 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
   public void onResume() {
     super.onResume();
     getLoaderManager().restartLoader(CURSOR_LOADER_ID, null, this);
+
+    LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver,
+            new IntentFilter("my-event"));
   }
 
   public void networkToast(){
@@ -179,6 +185,13 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
       getMenuInflater().inflate(R.menu.my_stocks, menu);
       restoreActionBar();
       return true;
+  }
+
+  @Override
+  protected void onPause() {
+    LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
+
+    super.onPause();
   }
 
   @Override
@@ -224,4 +237,10 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     mCursorAdapter.swapCursor(null);
   }
 
+  private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+    @Override
+    public void onReceive(Context context, Intent intent) {
+      Toast.makeText(MyStocksActivity.this, "Searched for stock symbol does not exists.", Toast.LENGTH_LONG).show();
+    }
+  };
 }

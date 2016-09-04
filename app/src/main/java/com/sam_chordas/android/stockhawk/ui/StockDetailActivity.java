@@ -3,113 +3,99 @@ package com.sam_chordas.android.stockhawk.ui;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.widget.Toast;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
 
-import com.db.chart.Tools;
-import com.db.chart.model.LineSet;
-import com.db.chart.view.AxisController;
 import com.db.chart.view.LineChartView;
-import com.db.chart.view.animation.Animation;
 import com.sam_chordas.android.stockhawk.R;
 import com.sam_chordas.android.stockhawk.data.QuoteColumns;
-import com.sam_chordas.android.stockhawk.data.QuoteProvider;
+import com.sam_chordas.android.stockhawk.service.StockIntentService;
 
 public class StockDetailActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor> {
 
-    public static final String TAG_STOCK_SYMBOL = "STOCK_SYMBOL";
-    private static final int STOCK_LOADER = 1;
-
-    private String currency;
+    private static final int DEFAULT_RANGE_WEEK = 7;
+    private static final int RANGE_MONTH = 30;
+    private static String symbol;
+    private static String name;
+    private static String range;
+    private final String LOG_TAG = StockDetailActivity.class.getSimpleName();
+    boolean isConnected;
+    private Intent mServiceIntent;
+    private Cursor mCursor;
     private LineChartView lineChartView;
 
-    public static Intent getStartActivityIntent(Context context, String currency) {
-        Intent intent = new Intent(context, StockDetailActivity.class);
-        intent.putExtra(StockDetailActivity.TAG_STOCK_SYMBOL, currency);
-
-        return intent;
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Context mContext = this;
+        ConnectivityManager cm =
+                (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+        setContentView(R.layout.activity_line_graph);
+        TextView errorText = (TextView) findViewById(R.id.emptyView);
+        lineChartView = (LineChartView) findViewById(R.id.linechart);
+        Bundle extras = getIntent().getExtras();
+        symbol = extras.getString(QuoteColumns.SYMBOL);
+        name = extras.getString(QuoteColumns._ID);
+        range = getString(R.string.week);
+        if (name != null && !name.isEmpty()) {
+            ActionBar mActionBar = getSupportActionBar();
+            if (mActionBar != null) {
+                mActionBar.setTitle(name);
+            }
+            mServiceIntent = new Intent(this, StockIntentService.class);
+            if (savedInstanceState == null) {
+                if (isConnected) {
+                    range = getString(R.string.week);
+                } else {
+                    if (errorText != null) {
+                        errorText.setVisibility(View.VISIBLE);
+                    }
+                }
+            }
+            getLoaderManager().initLoader(MyStocksActivity.CURSOR_LOADER_ID, null, this);
+        }
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_line_graph);
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.history_stocks, menu);
+        return true;
+    }
 
-        currency = getIntent().getStringExtra(TAG_STOCK_SYMBOL);
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_week_history: {
 
-        setTitle(currency);
-        lineChartView = (LineChartView)findViewById(R.id.linechart);
-
-        getSupportLoaderManager().initLoader(STOCK_LOADER, null, this);
+            }
+        }
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        switch (id) {
-            case STOCK_LOADER:
-                return new CursorLoader(this, QuoteProvider.Quotes.CONTENT_URI,
-                        new String[]{QuoteColumns._ID, QuoteColumns.SYMBOL, QuoteColumns.BIDPRICE,
-                            QuoteColumns.PERCENT_CHANGE, QuoteColumns.CHANGE, QuoteColumns.ISUP},
-                        QuoteColumns.SYMBOL + " = ?",
-                        new String[]{currency},
-                        null);
-        }
         return null;
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        int count = data.getCount();
 
-        if (count != 0) {
-            renderChart(data);
-        }
-    }
-
-    public void renderChart(Cursor data) {
-        LineSet lineSet = new LineSet();
-        float minimumPrice = Float.MAX_VALUE;
-        float maximumPrice = Float.MIN_VALUE;
-
-        for (data.moveToFirst(); !data.isAfterLast(); data.moveToNext()) {
-            String label = data.getString(data.getColumnIndexOrThrow(QuoteColumns.BIDPRICE));
-            float price = Float.parseFloat(label);
-
-            lineSet.addPoint(label, price);
-            minimumPrice = Math.min(minimumPrice, price);
-            maximumPrice = Math.max(maximumPrice, price);
-        }
-
-        lineSet.setColor(Color.parseColor("#758cbb"))
-                .setFill(Color.parseColor("#2d374c"))
-                .setDotsColor(Color.parseColor("#758cbb"))
-                .setThickness(4)
-                .setDashed(new float[]{10f, 10f});
-
-        lineChartView.setBorderSpacing(Tools.fromDpToPx(15))
-                .setYLabels(AxisController.LabelPosition.OUTSIDE)
-                .setXLabels(AxisController.LabelPosition.NONE)
-                .setLabelsColor(Color.parseColor("#6a84c3"))
-                .setXAxis(false)
-                .setYAxis(false)
-                .setAxisBorderValues(Math.round(Math.max(0f, minimumPrice - 5f)), Math.round(maximumPrice + 5f))
-                .addData(lineSet);
-
-        Animation anim = new Animation();
-
-        if (lineSet.size() > 1)
-            lineChartView.show(anim);
-        else
-            Toast.makeText(this, "No data", Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
+
     }
 }

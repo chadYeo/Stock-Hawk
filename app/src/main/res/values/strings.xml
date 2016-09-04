@@ -12,4 +12,8 @@
     <string name="network_toast">Uh-oh! This app requires an internet connection</string>
     <string name="new_stock">Add new stock</string>
     <string name="title_activity_stock_detail">StockDetailActivity</string>
+    <string name="week">week</string>
+    <string name="history_range">Range</string>
+    <string name="action_week_history">previous week</string>
+    <string name="action_month_history">previous month</string>
 </resources>

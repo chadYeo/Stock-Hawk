@@ -28,7 +28,10 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".ui.StockDetailActivity" />
+        <activity
+            android:name=".ui.StockDetailActivity"
+            android:label="Stock Details"
+            android:parentActivityName=".ui.MyStocksActivity"/>
 
         <service
             android:name=".service.StockTaskService"
